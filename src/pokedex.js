@@ -1,57 +1,54 @@
 import React from 'react';
 import pokemonList from './data';
-import Pokemons from './pokemon'
+import Pokemons from './pokemon';
+import Button from './Button';
 
 class pokedex extends React.Component {
   constructor(props) {
-    super(props)
-    this.state = {
-      pokemonIndex: 0,
-      filterType: 'Fire'
-    }
+    super(props);
+    this.state = { index: 0, pokemonType: 'All' };
   }
 
-  handleClick = (listLength) => {
-    this.nextPokemon(this.state, listLength);
+  nextPokemon(arrayLength) {
+    arrayLength - 1 > this.state.index
+      ? this.setState({ index: this.state.index + 1 })
+      : this.setState({ index: 0 });
   }
 
-  nextPokemon = (state, listLength) => {
-    this.setState({
-      pokemonIndex: state.pokemonIndex + 1 >= listLength ? 0 : state.pokemonIndex + 1
-    })
+  filterType(type) {
+    return pokemonList.filter(pokemon => {
+      if (type === 'All') return true;
+      return pokemon.type === type;
+    });
   }
 
-  setFilter = (state, filter) => {
-    this.setState({
-      pokemonIndex: state.pokemonIndex,
-      filterType: filter
-    })
+  setType(type) {
+    this.setState({ pokemonType: type, index: 0 });
   }
+
+  pokemonTypesArray = () =>
+    pokemonList.reduce(
+      (unique, { type }) => (unique.includes(type) ? unique : [...unique, type]),
+      [],
+    );
+
+  
 
   render() {
-    const filteredPokemons = pokemonList
-      .filter((pokemon) => this.state.filterType === pokemon.type)
-
-    const { name, type, image, averageWeight } = filteredPokemons[this.state.pokemonIndex];
-
+    const pokemonsList = this.filterType(this.state.pokemonType);
+    const pokemonTypes = this.pokemonTypesArray();
     return (
       <div>
-        <Pokemons
-          name={name}
-          type={type}
-          image={image}
-          weight={averageWeight.value}
-          unit={averageWeight.measurementUnit}
+        <Pokemons pokemon={pokemonsList[this.state.index]} />
+        <Button
+          disabled={this.filterType(this.state.pokemonType).length <= 1}
+          onClick={() => this.nextPokemon(pokemonsList.length)}
+          label="Proximo Pokemon"
         />
-        <button onClick={() => this.handleClick(filteredPokemons.length)}>Proximo</button>
-        <button onClick={() => this.setFilter(this.state, 'Bug')}>Bug</button>
-        <button onClick={() => this.setFilter(this.state, 'Dragon')}>Dragon</button>
-        <button onClick={() => this.setFilter(this.state, 'Electric')}>Electric</button>
-        <button onClick={() => this.setFilter(this.state, 'Fire')}>Fire</button>
-        <button onClick={() => this.setFilter(this.state, 'Normal')}>Normal</button>
-        <button onClick={() => this.setFilter(this.state, 'Poison')}>Poison</button>
-        <button onClick={() => this.setFilter(this.state, 'Psychic')}>Psychic</button>
-
+        <Button onClick={() => this.setType('All')} label="All" />
+        {pokemonTypes.map(type => (
+          <Button onClick={() => this.setType(type)} label={type} />
+        ))}
       </div>
     );
   }
